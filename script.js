@@ -1,176 +1,141 @@
-class AudioController {
-  constructor() {
-    this.bgMusic = new Audio('Assets/Audio/creepy.mp3');
-    this.flipSound = new Audio('Assets/Audio/flip.wav');
-    this.matchSound = new Audio('Assets/Audio/match.wav');
-    this.victorySound = new Audio('Assets/Audio/victory.wav');
-    this.gameOverSound = new Audio('Assets/Audio/gameover.wav');
-    this.bgMusic.volume = .3;
-    this.bgMusic.loop = true;
-  }
-  startMusic() {
-    this.bgMusic.play();
-  }
-  stopMusic() {
-    this.bgMusic.pause();
-    this.bgMusic.currentTime = 0;
-  }
-  flip() {
-    this.flipSound.play();
-  }
-  match() {
-    this.matchSound.play();
-  }
-  victory() {
-    this.stopMusic();
-    this.victorySound.play();
-  }
-  gameOver() {
-    this.stopMusic();
-    this.gameOverSound.play();
-  }
+const listsContainer = document.querySelector('[data-lists]');
+const newListForm = document.querySelector('[data-new-list-form]');
+const newListInput = document.querySelector('[data-new-list-input]');
+const deleteListButton = document.querySelector('[data-delete-list-button]');
+const listDisplayContainer = document.querySelector('[data-list-display-container]');
+const listTitleElement = document.querySelector('[data-list-title]');
+const listCountElement = document.querySelector('[data-list-count');
+const tasksContainer = document.querySelector('[data-tasks]');
+const taskTemplate = document.getElementById('task-template');
+const newTaskForm = document.querySelector('[data-new-task-form]');
+const newTaskInput = document.querySelector('[data-new-task-input]');
+const clearCompleteTasksButton = document.querySelector('[data-clear-complete-tasks-button]');
+
+const LOCAL_STORAGE_LIST_KEY = 'tasks.list';
+const LOCAL_STORAGE_SELECTED_LIST_ID_KEY = 'task.selectedListId';
+let lists = JSON.parse(localStorage.getItem(LOCAL_STORAGE_LIST_KEY)) || [];
+let selectedListId = localStorage.getItem(LOCAL_STORAGE_SELECTED_LIST_ID_KEY);
+
+listsContainer.addEventListener('click', e => {
+    if(e.target.tagName.toLowerCase()  === 'li') {
+        selectedListId = e.target.dataset.listId;
+        saveAndRender();
+    }
+})
+
+tasksContainer.addEventListener('click', e => {
+    if(e.target.tagName.toLowerCase() === 'input') {
+        const selectedList = lists.find(list => list.id === selectedListId);
+        const selectedTask = selectedList.tasks.find(task => task.id === e.target.id);
+        selectedTask.complete = e.target.checked;
+        save();
+        renderTaskCount(selectedList);
+    }
+})
+
+clearCompleteTasksButton.addEventListener('click', e => {
+    const selectedList = lists.find(list => list.id === selectedListId);
+    selectedList.tasks = selectedList.tasks.filter(task => !task.complete);
+    saveAndRender();
+})
+
+deleteListButton.addEventListener('click', e => {
+    lists = lists.filter(list => list.id !== selectedListId);
+    selectedListId = null;
+    saveAndRender();
+})
+
+newListForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const listName = newListInput.value;
+    if(listName == null || listName === "") return;
+    const list = createList(listName);
+    newListInput.value = null;
+    lists.push(list);
+    saveAndRender();
+})
+
+newTaskForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const taskName = newTaskInput.value;
+    if(taskName == null || taskName === "") return;
+    const task = createTask(taskName);
+    newTaskInput.value = null;
+    const selectedList = lists.find(list => list.id === selectedListId);
+    selectedList.tasks.push(task);
+    saveAndRender();
+})
+
+function createList(name) {
+    return { id: Date.now().toString(), name: name, tasks: []};
 }
 
+function createTask(name) {
+    return { id: Date.now().toString(), name: name, complete: false };
+}
 
-  class MixOrMatch {
-    constructor(totalTime, cards) {
-      this.cardsArray = cards;
-      this.totalTime = totalTime;
-      this.timeRemaining = totalTime;
-      this.timer = document.getElementById('time-remaining');
-      this.ticker = document.getElementById('flips');
-      this.audioController = new AudioController();
-    }
+function saveAndRender() {
+    save();
+    render();
+}
 
-    startGame() {
-      this.cardToCheck = null;
-      this.totalClicks = 0;
-      this.timeRemaining = this.totalTime;
-      this.matchedCards = [];
-      this.busy = true;
-      setTimeout(() => {
-        this.audioController.startMusic();
-        this.shuffleCards();
-        this.countDown = this.startCountDown();
-        this.busy = false;
-      }, 500);
-      this.hideCards();
-      this.timer.innerText = this.timeRemaining;
-      this.ticker.innerText = this.totalClicks;
-    }
+function save() {
+    localStorage.setItem(LOCAL_STORAGE_LIST_KEY, JSON.stringify(lists));
+    localStorage.setItem(LOCAL_STORAGE_SELECTED_LIST_ID_KEY, selectedListId);
+}
 
-    hideCards() {
-      this.cardsArray.forEach(card => {
-        card.classList.remove('visible');
-        card.classList.remove('matched');
-      })
-    }
+function render() {
+     clearElement(listsContainer);
+     renderLists();
 
-    flipCard(card) {
-      if(this.canFlipCard(card)) {
-        this.audioController.flip();
-        this.totalClicks++;
-        this.ticker.innerText = this.totalClicks;
-        card.classList.add('visible');
+    const selectedList = lists.find(list => list.id === selectedListId);
+     if(selectedListId == null) {
+         listDisplayContainer.style.display = 'none';
+     } else {
+         listDisplayContainer.style.display = '';
+         listTitleElement.innerText = selectedList.name;
+         renderTaskCount(selectedList);
+         clearElement(tasksContainer);
+         renderTasks(selectedList);
+     }
+}
 
-        if(this.cardToCheck) {
-          this.checkForCardMatch(card);
-        } else {
-          this.cardToCheck = card;
-        }
-      }
-    }
-
-    checkForCardMatch(card) {
-      if(this.getCardType(card) === this.getCardType(this.cardToCheck)) {
-        this.cardMatch(card, this.cardToCheck);
-      } else {
-        this.cardMisMatch(card, this.cardToCheck);
-      }
-      this.cardToCheck = null;
-    }
-
-      cardMatch(cardOne, cardTwo) {
-        this.matchedCards.push(cardOne);
-        this.matchedCards.push(cardTwo);
-        cardOne.classList.add('matched');
-        cardTwo.classList.add('matched');
-        this.audioController.match();
-        if(this.matchedCards.length === this.cardsArray.length) {
-          this.victory();
-        }
-      }
-
-      cardMisMatch(cardOne, cardTwo) {
-        this.busy = true;
-        setTimeout(() => {
-          cardOne.classList.remove('visible');
-          cardTwo.classList.remove('visible');
-          this.busy = false;
-        }, 1000)
-      }
-
-      getCardType(card) {
-        return card.getElementsByClassName('card-value')[0].src;
-      }
-
-    startCountDown() {
-      return setInterval(() => {
-        this.timeRemaining--;
-        this.timer.innerText = this.timeRemaining;
-        if(this.timeRemaining === 0) {
-          this.gameOver();
-        }
-      }, 1000);
-    }
-
-    gameOver() {
-      clearInterval(this.countDown);
-      this.audioController.gameOver();
-      document.getElementById('game-over-text').classList.add('visible');
-    }
-
-    victory() {
-      clearInterval(this.countDown);
-      this.audioController.victory();
-      document.getElementById('victory-text').classList.add('visible');
-    }
-
-    shuffleCards() {
-      for(let i = this.cardsArray.length - 1; i > 0; i--) {
-        let randIndex = Math.floor(Math.random() * (i + 1));
-        this.cardsArray[randIndex].style.order = i;
-        this.cardsArray[i].style.order = randIndex;
-      }
-    }
-
-    canFlipCard(card) {
-      return !this.busy && !this.matchedCards.includes(card) && card !== this.cardToCheck;
-    }
-  }
-  
-
-function ready() {
-  let overlays = Array.from(document.getElementsByClassName('overlay-text'));
-  let cards = Array.from(document.getElementsByClassName('card'));
-  let game = new MixOrMatch(5, cards);
-
-  overlays.forEach(overlay => {
-    overlay.addEventListener('click', () => {
-      overlay.classList.remove('visible');
-      game.startGame();
+function renderTasks(selectedList) {
+    selectedList.tasks.forEach(task => {
+        const taskElement = document.importNode(taskTemplate.content, true);
+        const checkbox = taskElement.querySelector('input');
+        checkbox.id = task.id;
+        checkbox.checked = task.complete;
+        const label = taskElement.querySelector('label');
+        label.htmlFor = task.id;
+        label.append(task.name);
+        tasksContainer.appendChild(taskElement);
     })
-  })
-
-  cards.forEach(card => {
-    card.addEventListener('click', () => {
-      game.flipCard(card);
-    })
-  })
 }
 
-if(document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', ready());
-} else {
-  ready();
+function renderTaskCount(selectedList) {
+    const incompleteTaskCount = selectedList.tasks.filter(task => !task.complete).length;
+    const taskString = incompleteTaskCount === 1 ? "task remaining" : "tasks remaining";
+    listCountElement.innerText = `${incompleteTaskCount} ${taskString}`;
 }
+
+function renderLists() {
+         lists.forEach(list => {
+         const listElement = document.createElement('li');
+         listElement.dataset.listId = list.id;
+         listElement.classList.add('list-name');
+         listElement.innerText = list.name;
+         if(list.id === selectedListId) {
+             listElement.classList.add('active-list');
+         }
+         listsContainer.appendChild(listElement)
+     })
+}
+
+function clearElement(element) {
+    while(element.firstChild) {
+        element.removeChild(element.firstChild);
+    }
+}
+
+render();

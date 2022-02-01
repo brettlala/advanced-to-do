@@ -1,220 +1,249 @@
-@font-face {
-  font-family: "Creepy";
-  src: url("Assets/Fonts/Creepy.woff") format("woff"),
-    url("Assets/Fonts/Creepy.woff2") format("woff2");
+:root {
+  --clr-primary: rgb(54, 112, 199);
+  --clr-light: #f4f4f4;
+  --clr-dark: #333;
+  --clr-warning: rgb(99, 36, 36);
 }
 
-@font-face {
-  font-family: "Lunacy";
-  src: url("Assets/Fonts/Lunacy.woff") format("woff"),
-    url("Assets/Fonts/Lunacy.woff2") format("woff2");
-}
-
-* {
+*,
+*::before,
+*::after {
+  font-family: inherit;
   box-sizing: border-box;
-}
-
-html {
-  min-height: 100vh;
-  cursor: url("Assets/Cursors/Ghost.cur"), auto;
 }
 
 body {
   margin: 0;
-  background: radial-gradient(#9d5900, #3d2200);
+  font-family: "Work Sans", sans-serif;
+  font-weight: 300;
+  font-size: 1.5rem;
+  background-color: var(--clr-primary);
+  color: var(--clr-light);
+
+  display: grid;
+  grid:
+    "header header header header" auto
+    "...... lists  active ......" auto /
+    1fr minmax(100px, 300px) minmax(100px, 500px) 1fr;
 }
 
-.page-title {
-  color: #ff6d00;
-  font-family: Creepy, serif;
-  font-weight: normal;
+.title {
+  grid-area: header;
   text-align: center;
-  font-size: 6em;
+  font-size: calc(7vw + 2rem);
+  font-weight: 900;
+  color: rgba(0, 0, 0, 0.1);
+  letter-spacing: 2px;
+  margin: -0.3em 0 0.5em;
 }
 
-.game-info-container {
-  grid-column: 1/-1;
+.all-tasks {
+  grid-area: lists;
+}
+
+.task-list {
+  font-size: 1.2rem;
+  line-height: 1.7;
+  list-style: circle;
+  padding-left: 1.1em;
+}
+
+.list-name {
+  cursor: pointer;
+}
+
+.list-name:hover {
+  opacity: 0.7;
+}
+
+.new::placeholder {
+  color: inherit;
+}
+
+form {
   display: flex;
+}
+
+.btn {
+  cursor: pointer;
+  background: 0;
+  border: 0;
+  padding: 0;
+  color: inherit;
+}
+
+.btn.create {
+  font-size: 1.5rem;
+  font-weight: 900;
+  margin-right: 0.25em;
+  transition: opacity 200ms ease-in;
+}
+
+.btn.btn.create:hover {
+  opacity: 0.7;
+}
+
+.btn.delete {
+  opacity: 0.7;
+  font-size: 1rem;
+  transition: color 200ms;
+}
+
+.btn.delete:hover {
+  color: var(--clr-warning);
+}
+
+.new {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  border-bottom: 1px solid currentColor;
+  font-size: inherit;
+  outline: none;
+  order: 2;
+  padding: 0.25em;
+
+  transition: border-bottom 150ms ease-in;
+}
+
+.new:focus {
+  border-bottom-width: 3px;
+}
+
+.new::placeholder {
+  opacity: 0.3;
+}
+
+.new:focus::placeholder {
+  opacity: 0.1;
+}
+
+.new.list {
+  font-size: 1.1rem;
+}
+
+.new.task {
+  margin-bottom: 0;
+}
+
+.active-list {
+  font-weight: 700;
+}
+
+.todo-list {
+  --spacer: 2rem;
+
+  grid-area: active;
+  background: var(--clr-light);
+  color: var(--clr-dark);
+}
+
+.todo-header {
+  background: #e4e4e4;
+  padding: var(--spacer);
+  display: flex;
+  align-items: center;
   justify-content: space-between;
 }
 
-.game-info {
-  font-family: Lunacy, serif;
-  color: #ffbb89;
-  font-size: 4em;
+.list-title {
+  margin: 0 1rem 0 0;
 }
 
-.game-container {
-  display: grid;
-  grid-template-columns: repeat(4, auto);
-  grid-gap: 10px;
-  justify-content: center;
-  margin: 50px;
-  perspective: 500px;
+.task-count {
+  margin: 0;
+  font-size: 1rem;
 }
 
-.card {
+.todo-body {
+  padding: var(--spacer);
   position: relative;
-  height: 175px;
-  width: 125px;
-  user-select: none;
 }
 
-.card:hover {
-  cursor: url("Assets/Cursors/GhostHover.cur"), auto;
+.new-task-creator .create {
+  color: var(--clr-primary);
 }
 
-.card-face {
+[type="checkbox"] {
+  opacity: 0;
+  position: absolute;
+}
+
+.task label {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+}
+
+.task {
+  position: relative;
+  margin-bottom: 1.25em;
+}
+
+.task::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  left: 0;
+  bottom: -0.5em;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.1;
+}
+
+.custom-checkbox {
+  --size: 0.75em;
+  display: inline-block;
+  width: var(--size);
+  height: var(--size);
+  margin-right: var(--size);
+  cursor: pointer;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  transform: scale(1);
+  transition: transform 250ms ease-in-out;
+}
+
+.task:hover .custom-checkbox,
+[type="checkbox"]:focus + label .custom-checkbox {
+  transform: scale(1.2);
+  color: var(--clr-primary);
+}
+
+[type="checkbox"]:checked + label .custom-checkbox {
+  background: var(--clr-primary);
+  border-color: var(--clr-primary);
+  box-shadow: inset 0 0 0px 3px white;
+}
+
+[type="checkbox"]:checked + label {
+  opacity: 0.5;
+}
+
+.task label::after {
+  content: "";
+  position: absolute;
+  left: 1.5em;
+  right: 0;
+  top: 50%;
+  height: 3px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 150ms ease-in-out;
+}
+
+[type="checkbox"]:checked + label::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.delete-stuff {
+  display: flex;
+  justify-content: space-evenly;
   position: absolute;
   width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-  backface-visibility: hidden;
-  border-radius: 12px;
-  border-width: 1px;
-  border-style: solid;
-  transition: transform 500ms ease-in-out;
-}
-
-.card.visible .card-back {
-  transform: rotateY(-180deg);
-}
-
-.card.visible .card-front {
-  transform: rotateY(0);
-}
-
-.card.matched .card-value {
-  animation: dance 1s linear infinite 500ms;
-}
-
-.overlay-text {
-  display: none;
-  position: fixed;
-  top: 0;
-  bottom: 0;
   left: 0;
-  right: 0;
-  justify-content: center;
-  align-items: center;
-  z-index: 100;
-  color: #ff6d00;
-  font-family: Creepy, serif;
-}
-
-.overlay-text-small {
-  font-size: 0.3em;
-}
-
-.overlay-text.visible {
-  display: flex;
-  flex-direction: column;
-  animation: overlay-grow 500ms forwards;
-}
-
-@keyframes overlay-grow {
-  from {
-    background-color: rgba(0, 0, 0, 0);
-    font-size: 0%;
-  }
-  to {
-    background-color: rgba(0, 0, 0, 0.8);
-    font-size: 10em;
-  }
-}
-
-@keyframes dance {
-  0%,
-  100% {
-    transform: rotate(0);
-  }
-  25% {
-    transform: rotate(-30deg);
-  }
-  75% {
-    transform: rotate(30deg);
-  }
-}
-
-.card-back {
-  border-color: #ff6d00;
-  background-color: black;
-}
-
-.card-front {
-  background-color: #ffbb89;
-  border-color: #333;
-  transform: rotateY(180deg);
-}
-
-.card-value {
-  transform: scale(0.9);
-  transition: 100ms transform ease-in-out;
-}
-
-.card-front:hover .card-value {
-  transform: scale(1);
-}
-
-.card-front {
-  transform: rotateY(180deg);
-}
-
-.cob-web {
-  position: absolute;
-  width: 47px;
-  height: 47px;
-  transition: width 100ms ease-in-out, height 100ms ease-in-out;
-}
-
-.card-face:hover .cob-web {
-  width: 52px;
-  height: 52px;
-}
-
-.cob-web-top-left {
-  top: 0;
-  left: 0;
-  transform: rotate(270deg);
-}
-
-.cob-web-top-right {
-  top: 0;
-  right: 0;
-}
-
-.cob-web-bottom-left {
-  bottom: 0;
-  left: 0;
-  transform: rotate(180deg);
-}
-
-.cob-web-bottom-right {
-  bottom: 0;
-  right: 0;
-  transform: rotate(90deg);
-}
-
-.spider {
-  align-self: flex-start;
-  transform: translateY(-10px);
-  transition: transform 100ms ease-in-out;
-}
-
-.card-back:hover .spider {
-  transform: translateY(0);
-}
-
-@media (max-width: 600px) {
-  .game-container {
-    grid-template-columns: repeat(2, auto);
-  }
-
-  .game-info-container {
-    flex-direction: column;
-    align-items: center;
-  }
+  bottom: -35px;
+  color: var(--clr-light);
 }
